@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Budget Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e3f2fd;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            font-weight: 600;
+            color: #007BFF;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            display: none;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table, th, td {
+            border: none;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"], input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus, input[type="date"]:focus {
+            outline: none;
+            border-color: #007BFF;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #recalculateButton {
+            background-color: #17a2b8;
+        }
+
+        #recalculateButton:hover {
+            background-color: #138496;
+        }
+
+        #expensesSection, #balanceSection, #salarySection {
+            display: none;
+        }
+
+        p, label {
+            font-size: 14px;
+            color: #555;
+        }
+
+        p#balance, p#salaryDisplay {
+            font-size: 18px;
+            font-weight: 600;
+            color: #007BFF;
+        }
+
+        .button-group {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monthly Budget Calculator</h1>
+        <div class="input-group">
+            <label for="income">Monthly Income (LKR):</label>
+            <input type="number" id="income" placeholder="Enter your monthly income">
+            <button onclick="setIncome()">Add</button>
+        </div>
+
+        <div id="salarySection">
+            <h2>Entered Salary</h2>
+            <p id="salaryDisplay">LKR 0.00</p>
+        </div>
+
+        <div class="input-group">
+            <label for="date">Date:</label>
+            <input type="date" id="date">
+        </div>
+        <div class="input-group">
+            <label for="expense">What was spent:</label>
+            <input type="text" id="expense" placeholder="Name of expense">
+        </div>
+        <div class="input-group">
+            <label for="amount">Amount spent (LKR):</label>
+            <input type="number" id="amount" placeholder="Value in LKR">
+        </div>
+        <button onclick="addExpense()">Add Expense</button>
+
+        <div id="expensesSection">
+            <h2>Expenses</h2>
+            <table id="expenseTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Expense</th>
+                        <th>Amount (LKR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="balanceSection">
+            <h2>Available Balance</h2>
+            <p id="balance">Please enter your income</p>
+        </div>
+        <button id="loginButton">Login with Google</button>
+    </div>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script>
+        let monthlyIncome = 0;
+        let totalExpenses = 0;
+
+        function updateBalance() {
+            const balance = monthlyIncome - totalExpenses;
+            document.getElementById('balance').innerText = `LKR ${balance.toFixed(2)}`;
+        }
+
+        function setIncome() {
+            monthlyIncome = parseFloat(document.getElementById('income').value);
+            if (isNaN(monthlyIncome) || monthlyIncome <= 0) {
+                alert("Please enter a valid income.");
+                return;
+            }
+            document.getElementById('salaryDisplay').innerText = `LKR ${monthlyIncome.toFixed(2)}`;
+            document.getElementById('salarySection').style.display = 'block';
+            updateBalance();
+        }
+
+        function addExpense() {
+            const date = document.getElementById('date').value;
+            const expenseName = document.getElementById('expense').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (isNaN(amount) || amount <= 0) {
+                alert("Please enter a valid amount.");
+                return;
+            }
+
+            if (monthlyIncome <= 0) {
+                alert("Please enter your monthly income first.");
+                return;
+            }
+
+            totalExpenses += amount;
+
+            const table = document.getElementById('expenseTable').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            newRow.innerHTML = `
+                <td>${date}</td>
+                <td class="editable" contenteditable="true">${expenseName}</td>
+                <td class="editable" contenteditable="true">${amount.toFixed(2)}</td>
+            `;
+
+            document.getElementById('expensesSection').style.display = 'block';
+            document.getElementById('balanceSection').style.display = 'block';
+            document.getElementById('expenseTable').style.display = 'table';
+
+            Array.from(newRow.getElementsByClassName('editable')).forEach(cell => {
+                cell.addEventListener('blur', recalculateBalance);
+            });
+
+            document.getElementById('date').value = '';
+            document.getElementById('expense').value = '';
+            document.getElementById('amount').value = '';
+
+            updateBalance();
+
+            saveExpenseToGoogleDrive(date, expenseName, amount);
+        }
+
+        function recalculateBalance() {
+            totalExpenses = 0;
+            const rows = document.querySelectorAll('#expenseTable tbody tr');
+            rows.forEach(row => {
+                const amount = parseFloat(row.cells[2].innerText.replace('LKR ', ''));
+                if (!isNaN(amount)) {
+                    totalExpenses += amount;
+                }
+            });
+            updateBalance();
+        }
+
+        // Google API related functions
+        let authInstance;
+        function initClient() {
+            gapi.load('client:auth2', function() {
+                gapi.client.init({
+                    apiKey: 'AIzaSyBkv5viFO2EVtJoxlUO0RMUwtc1XFBJuYo',
+                    clientId: '804407947347-4o4rqpmhasqlfvtsdstvr34rsltv7j99.apps.googleusercontent.com',
+                    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+                    scope: 'https://www.googleapis.com/auth/drive.file'
+                }).then(function () {
+                    authInstance = gapi.auth2.getAuthInstance();
+                    document.getElementById('loginButton').addEventListener('click', signIn);
+                });
+            });
+        }
+
+        function signIn() {
+            authInstance.signIn().then(() => {
+                document.getElementById('loginButton').style.display = 'none';
+            });
+        }
+
+        function saveExpenseToGoogleDrive(date, expenseName, amount) {
+            if (authInstance && authInstance.isSignedIn.get()) {
+                const fileContent = `Date: ${date}, Expense: ${expenseName}, Amount: LKR ${amount.toFixed(2)}\n`;
+                const blob = new Blob([fileContent], { type: 'text/plain' });
+                const metadata = {
+                    name: 'expenses.txt',
+                    mimeType: 'text/plain'
+                };
+                const accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                form.append('file', blob);
+
+                fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+                    method: 'POST',
+                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+                    body: form,
+                }).then(response => response.json()).then(result => {
+                    console.log('File saved to Google Drive:', result);
+                }).catch(error => {
+                    console.error('Error saving file to Google Drive:', error);
+                });
+            } else {
+                alert('Please sign in to save the file to Google Drive.');
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", initClient);
+    </script>
+</body>
+</html>>
